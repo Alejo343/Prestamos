@@ -10,18 +10,12 @@ import { useNavigate } from "react-router-dom";
 
 import AuthProvider from "../components/AuthProvider";
 
-/*
-  Stages:
-  0: initiated
-  1: loading
-  2: login completed
-  3: login but no username
-  4: not logged
-*/
+
 export default function LoginView() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [state, setCurrentState] = useState(0);
+  /*0=initiated; 1=loading; 2=logincompleted; 3=login; 4=not logged; 5=existe user*/
 
   async function handleOnClick() {
     const googleProvider = new GoogleAuthProvider();
@@ -37,6 +31,16 @@ export default function LoginView() {
     }
   }
 
+  function handleUserloggedIn(user) {
+    navigate("/dashboard");
+  }
+  function handleUserNotRegistered(user) {
+    navigate("/choose-username");
+  }
+  function handleUserNotLoggedIn() {
+    setCurrentState(4);
+  }
+  
   if (state == 2) {
     return <div>Estas autenticado pero y registrado</div>;
   }
@@ -50,15 +54,8 @@ export default function LoginView() {
       </div>
     );
   }
-
-  function handleUserloggedIn(user) {
-    navigate("/dashboard");
-  }
-  function handleUserNotRegistered(user) {
-    navigate("/choose-username");
-  }
-  function handleUserNotLoggedIn() {
-    setCurrentState(4);
+  if (state == 5) {
+    return <div>Estas autenticado pero no registrado</div>;
   }
 
   return (
