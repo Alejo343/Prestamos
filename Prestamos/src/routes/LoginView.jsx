@@ -3,8 +3,12 @@ import {
   onAuthStateChanged,
   signInWithPopup,
 } from "firebase/auth";
-import { auth } from "../firebase/firebase";
+import { auth, userExists } from "../firebase/firebase";
 import { useEffect, useState } from "react";
+
+import { useNavigate } from "react-router-dom";
+
+import AuthProvider from "../components/AuthProvider";
 
 /*
   Stages:
@@ -15,23 +19,9 @@ import { useEffect, useState } from "react";
   4: not logged
 */
 export default function LoginView() {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [state, setCurrentState] = useState(0);
-
-  useEffect(() => {
-    setCurrentState(1);
-    onAuthStateChanged(auth, handleUserStateChanged);
-  }, []);
-
-  function handleUserStateChanged(user) {
-    setCurrentState(3);
-    if (user) {
-      console.log(user.displayName);
-    } else {
-      setCurrentState(4);
-      console.log("No hay nadie autenticado");
-    }
-  }
 
   async function handleOnClick() {
     const googleProvider = new GoogleAuthProvider();
@@ -46,15 +36,38 @@ export default function LoginView() {
       console.error(error);
     }
   }
-  if (state==3) {
-    return <div>Estas autenticado pero no registrado</div>
+
+  if (state == 2) {
+    return <div>Estas autenticado pero y registrado</div>;
   }
-  if (state==4) {
+  if (state == 3) {
+    return <div>Estas autenticado pero no registrado</div>;
+  }
+  if (state == 4) {
     return (
       <div>
         <button onClick={handleOnClick}>Ingresar con Google</button>
       </div>
     );
   }
-  return <div>Cargando...</div>
+
+  function handleUserloggedIn(user) {
+    navigate("/dashboard");
+  }
+  function handleUserNotRegistered(user) {
+    navigate("/choose-username");
+  }
+  function handleUserNotLoggedIn() {
+    setCurrentState(4);
+  }
+
+  return (
+    <AuthProvider
+      onUserloggedIn={handleUserloggedIn}
+      onUserNotRegistered={handleUserNotRegistered}
+      onUserNotLoggedIn={handleUserNotLoggedIn}
+    >
+      <div>Cargando...</div>
+    </AuthProvider>
+  );
 }
